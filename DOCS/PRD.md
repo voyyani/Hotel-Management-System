@@ -1,12 +1,14 @@
 # **HOTEL MANAGEMENT SYSTEM (HMS)**
 ## **PRODUCT REQUIREMENTS DOCUMENT (PRD)**
 
-**Version:** 3.0  
-**Date:** December 23, 2025  
+**Version:** 4.0  
+**Date:** February 16, 2026  
 **Status:** Approved  
 **Prepared For:** Development Team, Stakeholders, AI Development Agents  
 **Prepared By:** Grace Kamami & Team  
 **Purpose:** To define a modern, scalable Hotel Management System built with cutting-edge technologies for optimal performance, developer experience, and future scalability.
+
+**Change Log:** Version 4.0 - Updated authentication from Clerk to Supabase Auth for unified platform architecture.
 
 ---
 
@@ -27,7 +29,8 @@ Traditional hotel systems suffer from:
 - **Real-time Updates:** Instant room status changes across all devices
 - **Modern Stack:** Developer-friendly with strong typing and excellent tooling
 - **Cloud-First:** Built for reliability and global accessibility
-- **Security First:** Enterprise-grade authentication with minimal configuration
+- **Unified Platform:** Single integrated backend with Supabase (database + auth + storage)
+- **Security First:** Enterprise-grade authentication with automatic RLS integration
 - **Future-Proof:** Modular architecture ready for extensions
 
 ---
@@ -37,7 +40,7 @@ Traditional hotel systems suffer from:
 ### **2.1 In-Scope (MVP Features)**
 | Module | Key Capabilities |
 |--------|------------------|
-| **1. Authentication & Authorization** | Clerk-powered auth, role-based access, session management, multi-factor authentication support |
+| **1. Authentication & Authorization** | Supabase Auth with email/password, social providers, role-based access, session management, multi-factor authentication support |
 | **2. Hotel Configuration** | Property setup, room types, pricing strategies, tax configurations, amenity definitions |
 | **3. Real-time Room Management** | Live room status dashboard, maintenance tracking, visual floor plans, availability calendar |
 | **4. Reservation System** | Availability search, booking engine, waitlist management, cancellation handling |
@@ -63,39 +66,40 @@ Traditional hotel systems suffer from:
 
 ### **3.1 System Administrator**
 - **Goal:** System stability and security
-- **Tech Stack Access:** Clerk Dashboard, Supabase Dashboard
+- **Tech Stack Access:** Supabase Dashboard (Auth, Database, Storage)
 - **Key Tasks:** User management, role assignment, system configuration, backup management
-- **Authentication:** Clerk Admin Portal access
+- **Authentication:** Supabase Auth with admin role
 
 ### **3.2 Hotel Manager**
 - **Goal:** Business optimization and reporting
 - **Tech Stack Access:** Advanced analytics views, financial reports
 - **Key Tasks:** Performance monitoring, rate management, staff oversight
-- **Authentication:** Clerk with `manager` role, dashboard access
+- **Authentication:** Supabase Auth with `manager` role, dashboard access
 
 ### **3.3 Front Desk Agent**
 - **Goal:** Efficient guest service
 - **Tech Stack Access:** Reservation management, guest check-in/out
 - **Key Tasks:** Guest handling, room assignment, billing processing
-- **Authentication:** Clerk with `receptionist` role, limited access
+- **Authentication:** Supabase Auth with `receptionist` role, limited access
 
 ### **3.4 Housekeeping (Future)**
 - **Goal:** Room readiness and maintenance
 - **Tech Stack Access:** Mobile-optimized task lists
 - **Key Tasks:** Room status updates, maintenance reporting
-- **Authentication:** Clerk with `housekeeping` role (future scope)
+- **Authentication:** Supabase Auth with `housekeeping` role (future scope)
 
 ---
 
 ## **4.0 FUNCTIONAL REQUIREMENTS**
 
-### **4.1 Authentication & Authorization (Powered by Clerk)**
-- **FR-AUTH-01:** Secure login via Clerk with email/password, social providers optional
-- **FR-AUTH-02:** Role-based permissions (`admin`, `manager`, `receptionist`)
-- **FR-AUTH-03:** Session management with automatic timeout (configurable)
-- **FR-AUTH-04:** Multi-factor authentication capability (ready for future enablement)
-- **FR-AUTH-05:** Password policies enforced by Clerk
-- **FR-AUTH-06:** Seamless logout across all tabs/devices
+### **4.1 Authentication & Authorization (Powered by Supabase Auth)**
+- **FR-AUTH-01:** Secure login via Supabase Auth with email/password, social providers (Google, GitHub)
+- **FR-AUTH-02:** Role-based permissions (`admin`, `manager`, `receptionist`) stored in profiles table
+- **FR-AUTH-03:** Session management with JWT tokens and automatic refresh
+- **FR-AUTH-04:** Multi-factor authentication capability (built-in support)
+- **FR-AUTH-05:** Password policies (minimum 6 characters, configurable)
+- **FR-AUTH-06:** Automatic session management across all tabs/devices
+- **FR-AUTH-07:** Email verification and password reset flows
 
 ### **4.2 Hotel Configuration**
 - **FR-CONFIG-01:** Hotel profile management (name, address, contact, logo)
@@ -156,8 +160,8 @@ Traditional hotel systems suffer from:
 - **FR-REPORT-06:** Financial reports (P&L, revenue by segment, payment methods)
 
 ### **4.9 Administration**
-- **FR-ADMIN-01:** User management via Clerk integration
-- **FR-ADMIN-02:** Role and permission management
+- **FR-ADMIN-01:** User management via Supabase Auth Dashboard
+- **FR-ADMIN-02:** Role and permission management in profiles table
 - **FR-ADMIN-03:** Audit trail of all system changes
 - **FR-ADMIN-04:** System health monitoring
 - **FR-ADMIN-05:** Database backup and restore interface
@@ -181,11 +185,11 @@ Traditional hotel systems suffer from:
 - **Progressive Web App:** Installable on mobile devices
 
 ### **5.3 Security**
-- **Authentication:** Clerk enterprise-grade security
-- **Authorization:** Row-Level Security (RLS) in Supabase
-- **Data Encryption:** At-rest and in-transit encryption
+- **Authentication:** Supabase Auth enterprise-grade security
+- **Authorization:** Row-Level Security (RLS) automatically integrated with auth sessions
+- **Data Encryption:** At-rest and in-transit encryption (AES-256)
 - **Audit Logging:** Complete audit trail of all data changes
-- **Compliance:** GDPR-ready data handling
+- **Compliance:** GDPR-ready data handling with built-in Supabase features
 
 ### **5.4 Reliability**
 - **Uptime:** 99.9% target (via Supabase SLA)
@@ -217,8 +221,8 @@ Traditional hotel systems suffer from:
 - **Deployment:** Vercel or Netlify
 
 #### **Backend Services**
-- **Database & Backend:** Supabase (PostgreSQL + Realtime + Storage)
-- **Authentication:** Clerk (with Supabase integration)
+- **Database & Backend:** Supabase (PostgreSQL + Realtime + Storage + Auth)
+- **Authentication:** Supabase Auth (built-in, integrated with RLS)
 - **APIs:** Supabase REST/GraphQL + Edge Functions when needed
 - **Realtime:** Supabase Realtime subscriptions
 
@@ -244,7 +248,7 @@ graph TB
     end
     
     subgraph "Auth Layer"
-        H[Clerk Auth] --> I[Supabase JWT Integration]
+        H[Supabase Auth] --> I[JWT Tokens]
     end
     
     subgraph "Data Layer"
@@ -254,7 +258,9 @@ graph TB
     end
     
     C --> D
-    I --> J
+    H --> I
+    I --> K
+    D --> H
     E --> J
     J --> K
 
@@ -463,15 +469,15 @@ CREATE POLICY "Users can read own profile" ON profiles
 
     Edge Functions for custom business logic
 
-8.2 Clerk Integration
+8.2 Authentication Integration
 
-    JWT tokens passed to Supabase
+    JWT tokens automatically integrated with RLS
 
-    User metadata sync with profiles table
+    User metadata stored in profiles table
 
-    Webhook handlers for user events
+    Auth state change handlers for session management
 
-    Session management synchronization
+    Automatic session persistence
 
 8.3 Future Integration Points
 
@@ -551,7 +557,7 @@ jobs:
 
     Database: Supabase managed PostgreSQL
 
-    Auth: Clerk managed service
+    Auth: Supabase Auth (managed service)
 
     Storage: Supabase Storage with CDN
 
@@ -563,7 +569,6 @@ text
 .env.local
 VITE_SUPABASE_URL=your-project-url
 VITE_SUPABASE_ANON_KEY=your-anon-key
-VITE_CLERK_PUBLISHABLE_KEY=your-clerk-key
 
 11.0 SUCCESS METRICS & KPIs
 11.1 System Performance
@@ -629,8 +634,8 @@ Phase 4 (Q4 2026)
 
 13.0 RISKS & MITIGATIONS
 Risk	Probability	Impact	Mitigation
-Supabase dependency	Medium	High	Regular database exports, escape plan to self-hosted Postgres
-Clerk pricing changes	Low	Medium	Auth abstraction layer, backup Supabase Auth
+Supabase dependency	Medium	High	Regular database exports, self-hosted Postgres option available
+Supabase pricing changes	Low	Medium	Free tier generous, can export and migrate if needed
 Team skill gap	Medium	Medium	Comprehensive documentation, paired programming
 Scope creep	High	High	Strict MVP definition, feature freeze periods
 Performance issues	Low	High	Performance budgets, regular load testing
@@ -654,16 +659,17 @@ Supervisor	Emmanuel Charo	[Digital Signature]	2025-12-23
 
 15.2 References
 
-    Supabase Documentation
+    Supabase Documentation: https://supabase.com/docs
 
-    Clerk Documentation
+    Supabase Auth: https://supabase.com/docs/guides/auth
 
-    React Documentation
+    React Documentation: https://react.dev
 
-    TypeScript Handbook
+    TypeScript Handbook: https://www.typescriptlang.org/docs
 
 15.3 Change Log
 Version	Date	Changes	Author
 1.0	2025-12-22	Initial draft	Grace Kamami
 2.0	2025-12-23	Technology update	Grace Kamami
 3.0	2025-12-23	React + Supabase + Clerk stack	Grace Kamami
+4.0	2026-02-16	Updated to Supabase Auth (unified platform)	Grace Kamami
