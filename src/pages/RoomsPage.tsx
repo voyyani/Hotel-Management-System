@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { RoomGrid } from '@/components/rooms/RoomGrid';
 import { RoomTypesManager } from '@/components/rooms/RoomTypesManager';
 import { Card } from '@/components/ui/card';
+import { PermissionGuard } from '@/components/PermissionGuard';
+import { PERMISSIONS } from '@/types/database';
 
 type View = 'rooms' | 'room-types';
 
@@ -32,16 +34,22 @@ export default function RoomsPage() {
             >
               Room Dashboard
             </button>
-            <button
-              onClick={() => setActiveView('room-types')}
-              className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
-                activeView === 'room-types'
-                  ? 'border-b-2 border-blue-600 text-blue-600'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
+            {/* Only managers and admins can manage room types */}
+            <PermissionGuard 
+              permissions={[PERMISSIONS.ROOMS_CREATE, PERMISSIONS.ROOMS_DELETE]}
+              requireAll={false}
             >
-              Room Types
-            </button>
+              <button
+                onClick={() => setActiveView('room-types')}
+                className={`flex-1 px-6 py-4 text-sm font-medium transition-colors ${
+                  activeView === 'room-types'
+                    ? 'border-b-2 border-blue-600 text-blue-600'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Room Types
+              </button>
+            </PermissionGuard>
           </div>
         </Card>
 

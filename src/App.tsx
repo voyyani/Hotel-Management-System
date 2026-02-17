@@ -3,6 +3,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { AppLayout } from './components/layout/AppLayout';
+import { PERMISSIONS } from './types/database';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
@@ -37,12 +39,14 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
 
-            {/* Protected routes */}
+            {/* Protected routes - All wrapped with AppLayout */}
             <Route
               path="/dashboard"
               element={
                 <ProtectedRoute>
-                  <DashboardPage />
+                  <AppLayout>
+                    <DashboardPage />
+                  </AppLayout>
                 </ProtectedRoute>
               }
             />
@@ -50,55 +54,87 @@ function App() {
               path="/profile"
               element={
                 <ProtectedRoute>
-                  <ProfilePage />
+                  <AppLayout>
+                    <ProfilePage />
+                  </AppLayout>
                 </ProtectedRoute>
               }
             />
             <Route
               path="/rooms"
               element={
-                <ProtectedRoute>
-                  <RoomsPage />
+                <ProtectedRoute 
+                  requiredRoles={['admin', 'manager', 'receptionist', 'housekeeping']}
+                  requiredPermissions={[PERMISSIONS.ROOMS_VIEW]}
+                >
+                  <AppLayout>
+                    <RoomsPage />
+                  </AppLayout>
                 </ProtectedRoute>
               }
             />
             <Route
               path="/guests"
               element={
-                <ProtectedRoute>
-                  <GuestsPage />
+                <ProtectedRoute 
+                  requiredRoles={['admin', 'manager', 'receptionist']}
+                  requiredPermissions={[PERMISSIONS.GUESTS_VIEW]}
+                >
+                  <AppLayout>
+                    <GuestsPage />
+                  </AppLayout>
                 </ProtectedRoute>
               }
             />
             <Route
               path="/reservations"
               element={
-                <ProtectedRoute>
-                  <ReservationsPage />
+                <ProtectedRoute 
+                  requiredRoles={['admin', 'manager', 'receptionist', 'accounts']}
+                  requiredPermissions={[PERMISSIONS.RESERVATIONS_VIEW]}
+                >
+                  <AppLayout>
+                    <ReservationsPage />
+                  </AppLayout>
                 </ProtectedRoute>
               }
             />
             <Route
               path="/front-desk"
               element={
-                <ProtectedRoute>
-                  <FrontDeskPage />
+                <ProtectedRoute 
+                  requiredRoles={['admin', 'manager', 'receptionist']}
+                  requiredPermissions={[PERMISSIONS.FRONTDESK_ACCESS]}
+                >
+                  <AppLayout>
+                    <FrontDeskPage />
+                  </AppLayout>
                 </ProtectedRoute>
               }
             />
             <Route
               path="/billing"
               element={
-                <ProtectedRoute>
-                  <BillingPage />
+                <ProtectedRoute 
+                  requiredRoles={['admin', 'manager', 'receptionist', 'accounts']}
+                  requiredPermissions={[PERMISSIONS.BILLING_VIEW]}
+                >
+                  <AppLayout>
+                    <BillingPage />
+                  </AppLayout>
                 </ProtectedRoute>
               }
             />
             <Route
               path="/analytics"
               element={
-                <ProtectedRoute>
-                  <AnalyticsPage />
+                <ProtectedRoute 
+                  requiredRoles={['admin', 'manager', 'accounts']}
+                  requiredPermissions={[PERMISSIONS.ANALYTICS_VIEW]}
+                >
+                  <AppLayout>
+                    <AnalyticsPage />
+                  </AppLayout>
                 </ProtectedRoute>
               }
             />

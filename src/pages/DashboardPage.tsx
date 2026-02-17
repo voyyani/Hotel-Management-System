@@ -1,29 +1,37 @@
-import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+// import { ManagerDashboard } from '@/components/dashboards/ManagerDashboard';
+// import { ReceptionistDashboard } from '@/components/dashboards/ReceptionistDashboard';
+// import { AccountsDashboard } from '@/components/dashboards/AccountsDashboard';
+// import { HousekeepingDashboard } from '@/components/dashboards/HousekeepingDashboard';
+
+// Helper function for role badge colors
+const getRoleColor = (role: string): string => {
+  switch (role) {
+    case 'admin':
+    case 'manager':
+      return 'bg-purple-100 text-purple-800 border-purple-300';
+    case 'receptionist':
+      return 'bg-blue-100 text-blue-800 border-blue-300';
+    case 'accounts':
+      return 'bg-green-100 text-green-800 border-green-300';
+    case 'housekeeping':
+      return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+    default:
+      return 'bg-gray-100 text-gray-800 border-gray-300';
+  }
+};
 
 export default function DashboardPage() {
-  const { user, profile, signOut } = useAuth();
   const navigate = useNavigate();
+  const { profile } = useAuth();
+  // const [viewAsRole] = useState<string | null>(null);
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate('/login');
-  };
+  // Determine which role's dashboard to show
+  // const effectiveRole = viewAsRole || profile?.role;
 
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'manager':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'receptionist':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'housekeeping':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
+  // Managers can switch between different dashboard views
+  // const canSwitchView = profile?.role === 'manager' || profile?.role === 'admin';
 
   const stats = [
     { name: 'Total Rooms', value: '50', icon: '🏨', color: 'from-blue-500 to-indigo-600' },
@@ -33,90 +41,7 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 flex items-center">
-                <div className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 p-2">
-                  <svg
-                    className="w-6 h-6 text-white"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-                    />
-                  </svg>
-                </div>
-                <span className="ml-3 text-xl font-bold text-gray-900">HMS</span>
-              </div>
-              <div className="hidden sm:ml-8 sm:flex sm:space-x-6">
-                <button
-                  onClick={() => navigate('/dashboard')}
-                  className="border-b-2 border-indigo-500 text-gray-900 inline-flex items-center px-1 pt-1 text-sm font-medium"
-                >
-                  Dashboard
-                </button>
-                <button
-                  onClick={() => navigate('/rooms')}
-                  className="border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 text-sm font-medium"
-                >
-                  Rooms
-                </button>
-                <button
-                  onClick={() => navigate('/guests')}
-                  className="border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 text-sm font-medium"
-                >
-                  Guests
-                </button>
-                <button
-                  onClick={() => navigate('/reservations')}
-                  className="border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 text-sm font-medium"
-                >
-                  Reservations
-                </button>
-                <button
-                  onClick={() => navigate('/front-desk')}
-                  className="border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 text-sm font-medium"
-                >
-                  Front Desk
-                </button>
-                <button
-                  onClick={() => navigate('/analytics')}
-                  className="border-b-2 border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 text-sm font-medium"
-                >
-                  Analytics
-                </button>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => navigate('/profile')}
-                className="flex items-center gap-2 text-sm font-medium text-gray-700 hover:text-gray-900"
-              >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center text-white font-semibold">
-                  {profile?.full_name?.charAt(0) || user?.email?.charAt(0).toUpperCase()}
-                </div>
-                <span className="hidden sm:block">{profile?.full_name || user?.email}</span>
-              </button>
-              <button
-                onClick={handleSignOut}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-gradient-to-r from-red-600 to-pink-600 hover:from-red-700 hover:to-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all"
-              >
-                Sign out
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
+    <div className="h-full overflow-auto bg-slate-50">
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Welcome Section */}

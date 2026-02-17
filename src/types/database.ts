@@ -1,7 +1,7 @@
 /**
  * User roles in the system
  */
-export type UserRole = 'admin' | 'manager' | 'receptionist' | 'housekeeping';
+export type UserRole = 'admin' | 'manager' | 'receptionist' | 'housekeeping' | 'accounts';
 
 /**
  * Room status types
@@ -27,6 +27,86 @@ export type PaymentMethod = 'cash' | 'credit_card' | 'debit_card' | 'bank_transf
  * Payment status types
  */
 export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded';
+
+/**
+ * Permission action types
+ */
+export type PermissionAction = 'create' | 'read' | 'update' | 'delete' | 'execute';
+
+/**
+ * Permission interface for RBAC
+ */
+export interface Permission {
+  id: string;
+  name: string;
+  description: string | null;
+  module: string;
+  action: PermissionAction;
+  created_at: string;
+}
+
+/**
+ * Role-Permission junction table interface
+ */
+export interface RolePermission {
+  id: string;
+  role: UserRole;
+  permission_id: string;
+  permission?: Permission;
+  created_at: string;
+}
+
+/**
+ * Permission constants for RBAC
+ */
+export const PERMISSIONS = {
+  // Dashboard
+  DASHBOARD_VIEW: 'dashboard.view',
+  DASHBOARD_VIEW_ALL: 'dashboard.view_all',
+  
+  // Rooms
+  ROOMS_VIEW: 'rooms.view',
+  ROOMS_CREATE: 'rooms.create',
+  ROOMS_UPDATE: 'rooms.update',
+  ROOMS_DELETE: 'rooms.delete',
+  ROOMS_UPDATE_STATUS: 'rooms.update_status',
+  
+  // Guests
+  GUESTS_VIEW: 'guests.view',
+  GUESTS_CREATE: 'guests.create',
+  GUESTS_UPDATE: 'guests.update',
+  GUESTS_DELETE: 'guests.delete',
+  
+  // Reservations
+  RESERVATIONS_VIEW: 'reservations.view',
+  RESERVATIONS_CREATE: 'reservations.create',
+  RESERVATIONS_UPDATE: 'reservations.update',
+  RESERVATIONS_DELETE: 'reservations.delete',
+  RESERVATIONS_CANCEL: 'reservations.cancel',
+  
+  // Front Desk
+  FRONTDESK_ACCESS: 'frontdesk.access',
+  FRONTDESK_CHECKIN: 'frontdesk.checkin',
+  FRONTDESK_CHECKOUT: 'frontdesk.checkout',
+  FRONTDESK_ROOM_CHANGE: 'frontdesk.room_change',
+  
+  // Billing
+  BILLING_VIEW: 'billing.view',
+  BILLING_CREATE: 'billing.create',
+  BILLING_UPDATE: 'billing.update',
+  BILLING_PROCESS_PAYMENT: 'billing.process_payment',
+  BILLING_REFUND: 'billing.refund',
+  
+  // Analytics
+  ANALYTICS_VIEW: 'analytics.view',
+  ANALYTICS_FINANCIAL: 'analytics.financial',
+  ANALYTICS_OPERATIONAL: 'analytics.operational',
+  
+  // System
+  SYSTEM_SETTINGS: 'system.settings',
+  USER_MANAGEMENT: 'users.manage',
+  AUDIT_LOGS: 'audit.view',
+} as const;
 
 /**
  * JSON type for JSONB columns
@@ -630,6 +710,52 @@ export interface Database {
           uploaded_by?: string
           created_at?: string
           updated_at?: string
+        }
+      }
+      permissions: {
+        Row: {
+          id: string
+          name: string
+          description: string | null
+          module: string
+          action: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          name: string
+          description?: string | null
+          module: string
+          action: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          name?: string
+          description?: string | null
+          module?: string
+          action?: string
+          created_at?: string
+        }
+      }
+      role_permissions: {
+        Row: {
+          id: string
+          role: UserRole
+          permission_id: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          role: UserRole
+          permission_id: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          role?: UserRole
+          permission_id?: string
+          created_at?: string
         }
       }
     }

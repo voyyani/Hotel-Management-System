@@ -2,24 +2,77 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
+type PasswordStrength = 'weak' | 'medium' | 'strong';
+
 export default function SignupPage() {
-const navigate = useNavigate();
+  const navigate = useNavigate();
   const { signUp } = useAuth();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [emailError, setEmailError] = useState('');
+  const [passwordStrength, setPasswordStrength] = useState<PasswordStrength | null>(null);
+
+  const calculatePasswordStrength = (pwd: string): PasswordStrength => {
+    let strength = 0;
+    
+    if (pwd.length >= 8) strength++;
+    if (pwd.length >= 12) strength++;
+    if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) strength++;
+    if (/\d/.test(pwd)) strength++;
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(pwd)) strength++;
+    
+    if (strength <= 2) return 'weak';
+    if (strength <= 4) return 'medium';
+    return 'strong';
+  };
+
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleEmailBlur = () => {
+    if (email && !validateEmail(email)) {
+      setEmailError('Please enter a valid email address');
+    } else {
+      setEmailError('');
+    }
+  };
+
+  const handlePasswordChange = (pwd: string) => {
+    setPassword(pwd);
+    if (pwd) {
+      setPasswordStrength(calculatePasswordStrength(pwd));
+    } else {
+      setPasswordStrength(null);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess(false);
+    setEmailError('');
 
     // Validation
+    if (!fullName.trim()) {
+      setError('Please enter your full name');
+      return;
+    }
+
+    if (!validateEmail(email)) {
+      setEmailError('Please enter a valid email address');
+      return;
+    }
+
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -30,24 +83,33 @@ const navigate = useNavigate();
       return;
     }
 
+    if (passwordStrength === 'weak') {
+      setError('Please choose a stronger password');
+      return;
+    }
+
     setLoading(true);
 
     try {
       const { error } = await signUp(email, password, fullName);
 
       if (error) {
-        setError(error.message);
+        if (error.message.includes('already registered')) {
+          setError('This email is already registered. Please sign in instead.');
+        } else {
+          setError(error.message);
+        }
         return;
       }
 
       setSuccess(true);
       
-      // Redirect to login after 2 seconds
+      // Redirect to login after 3 seconds
       setTimeout(() => {
         navigate('/login');
-      }, 2000);
+      }, 3000);
     } catch (err) {
-      setError('An unexpected error occurred');
+      setError('An unexpected error occurred. Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -56,6 +118,29 @@ const navigate = useNavigate();
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-pink-50 to-red-50 px-4 py-12">
       <div className="max-w-md w-full space-y-8">
+        {/* Back to Home Link */}
+        <div className="text-center">
+          <Link
+            to="/"
+            className="inline-flex items-center text-sm font-medium text-purple-600 hover:text-purple-500 transition-colors"
+          >
+            <svg
+              className="w-4 h-4 mr-1"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+            Back to Home
+          </Link>
+        </div>
+
         {/* Header */}
         <div className="text-center">
           <div className="flex justify-center mb-4">
@@ -109,11 +194,11 @@ const navigate = useNavigate();
           )}
 
           {success && (
-            <div className="mb-4 p-4 bg-green-50 border-l-4 border-green-500 rounded">
+            <div className="mb-4 p-4 bg-green-50 border-l-4 border-green-500 rounded animate-fadeIn">
               <div className="flex">
                 <div className="flex-shrink-0">
                   <svg
-                    className="h-5 w-5 text-green-400"
+                    className="h-5 w-5 text-green-400 animate-bounce"
                     viewBox="0 0 20 20"
                     fill="currentColor"
                   >
@@ -125,8 +210,11 @@ const navigate = useNavigate();
                   </svg>
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm text-green-700">
-                    Account created successfully! Check your email to verify your account. Redirecting...
+                  <p className="text-sm font-medium text-green-800">
+                    🎉 Account created successfully!
+                  </p>
+                  <p className="text-sm text-green-700 mt-1">
+                    Please check your email to verify your account. Redirecting to login...
                   </p>
                 </div>
               </div>
@@ -163,7 +251,7 @@ const navigate = useNavigate();
               >
                 Email address
               </label>
-              <div className="mt-1">
+              <div className="mt-1 relative">
                 <input
                   id="email"
                   name="email"
@@ -171,36 +259,95 @@ const navigate = useNavigate();
                   autoComplete="email"
                   required
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setEmailError('');
+                  }}
+                  onBlur={handleEmailBlur}
+                  className={`appearance-none block w-full px-4 py-3 border ${
+                    emailError ? 'border-red-300 focus:ring-red-500' : 'border-gray-300 focus:ring-purple-500'
+                  } rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent transition-all`}
                   placeholder="you@example.com"
                 />
+                {emailError && (
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                    <svg className="h-5 w-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                )}
               </div>
+              {emailError && (
+                <p className="mt-2 text-sm text-red-600">{emailError}</p>
+              )}
             </div>
 
+            {/* Password */}
             <div>
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
-              >
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                 Password
               </label>
-              <div className="mt-1">
+              <div className="mt-1 relative">
                 <input
                   id="password"
                   name="password"
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   autoComplete="new-password"
                   required
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  onChange={(e) => handlePasswordChange(e.target.value)}
+                  className="appearance-none block w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   placeholder="••••••••"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showPassword ? (
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    </svg>
+                  ) : (
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
+                </button>
               </div>
-              <p className="mt-1 text-xs text-gray-500">
-                Must be at least 6 characters
-              </p>
+              {passwordStrength && (
+                <div className="mt-2">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-medium text-gray-700">Password strength:</span>
+                    <span className={`text-xs font-semibold ${
+                      passwordStrength === 'weak' ? 'text-red-600' :
+                      passwordStrength === 'medium' ? 'text-yellow-600' :
+                      'text-green-600'
+                    }`}>
+                      {passwordStrength.toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="flex space-x-1">
+                    <div className={`h-1 flex-1 rounded ${
+                      passwordStrength === 'weak' ? 'bg-red-500' : 
+                      passwordStrength === 'medium' ? 'bg-yellow-500' : 
+                      'bg-green-500'
+                    }`}></div>
+                    <div className={`h-1 flex-1 rounded ${
+                      passwordStrength === 'medium' ? 'bg-yellow-500' : 
+                      passwordStrength === 'strong' ? 'bg-green-500' : 
+                      'bg-gray-200'
+                    }`}></div>
+                    <div className={`h-1 flex-1 rounded ${
+                      passwordStrength === 'strong' ? 'bg-green-500' : 'bg-gray-200'
+                    }`}></div>
+                  </div>
+                  <p className="mt-2 text-xs text-gray-500">
+                    Use 8+ characters with mix of letters, numbers & symbols
+                  </p>
+                </div>
+              )}
             </div>
 
             <div>
@@ -210,19 +357,48 @@ const navigate = useNavigate();
               >
                 Confirm Password
               </label>
-              <div className="mt-1">
+              <div className="mt-1 relative">
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
-                  type="password"
+                  type={showConfirmPassword ? 'text' : 'password'}
                   autoComplete="new-password"
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                  className="appearance-none block w-full px-4 py-3 pr-10 border border-gray-300 rounded-lg shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                   placeholder="••••••••"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  {showConfirmPassword ? (
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    </svg>
+                  ) : (
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
+                </button>
               </div>
+              {confirmPassword && password !== confirmPassword && (
+                <p className="mt-1 text-sm text-red-600">
+                  Passwords do not match
+                </p>
+              )}
+              {confirmPassword && password === confirmPassword && (
+                <p className="mt-1 text-sm text-green-600 flex items-center">
+                  <svg className="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  Passwords match
+                </p>
+              )}
             </div>
 
             <div className="flex items-center">

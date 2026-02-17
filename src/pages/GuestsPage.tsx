@@ -4,6 +4,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { GuestGrid } from '@/components/guests/GuestGrid';
 import { GuestForm } from '@/components/guests/GuestForm';
 import { GuestProfileModal } from '@/components/guests/GuestProfileModal';
+import { PermissionGuard } from '@/components/PermissionGuard';
+import { PERMISSIONS } from '@/types/database';
 import { useGuests, useDuplicateDetection } from '@/hooks/useGuests';
 import type { Database } from '@/types/database';
 
@@ -71,22 +73,25 @@ export default function GuestsPage() {
           <h1 className="text-3xl font-bold tracking-tight">Guest Management</h1>
           <p className="text-gray-600">Manage guest profiles and information</p>
         </div>
-        <Button onClick={handleCreateClick} size="lg">
-          <svg
-            className="mr-2 h-5 w-5"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-          Add Guest
-        </Button>
+        {/* Only users with GUESTS_CREATE permission can add new guests */}
+        <PermissionGuard permissions={PERMISSIONS.GUESTS_CREATE}>
+          <Button onClick={handleCreateClick} size="lg">
+            <svg
+              className="mr-2 h-5 w-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+            Add Guest
+          </Button>
+        </PermissionGuard>
       </div>
 
       {/* Guest Grid */}

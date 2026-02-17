@@ -129,15 +129,21 @@ export default function HomePage() {
             <div className="flex flex-wrap justify-center gap-4 lg:justify-start">
               <button
                 onClick={() => (user ? navigate('/rooms') : navigate('/signup'))}
-                className="rounded-xl bg-indigo-600 px-8 py-4 text-lg font-semibold text-white shadow-xl transition hover:bg-indigo-700 hover:shadow-2xl"
+                className="group relative rounded-xl bg-indigo-600 px-8 py-4 text-lg font-semibold text-white shadow-xl transition-all duration-300 hover:bg-indigo-700 hover:shadow-2xl hover:scale-105 active:scale-95"
               >
-                {user ? 'Go to Rooms' : 'Start free trial'}
+                <span className="relative z-10">
+                  {user ? 'Go to Rooms' : 'Start free trial'}
+                </span>
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-400 to-purple-600 opacity-0 transition-opacity duration-300 group-hover:opacity-20"></div>
               </button>
               <button
                 onClick={() => scrollToSection('features')}
-                className="rounded-xl border border-indigo-200 bg-white px-8 py-4 text-lg font-semibold text-indigo-600 shadow-lg transition hover:bg-indigo-50"
+                className="group rounded-xl border-2 border-indigo-200 bg-white px-8 py-4 text-lg font-semibold text-indigo-600 shadow-lg transition-all duration-300 hover:bg-indigo-50 hover:border-indigo-300 hover:scale-105 active:scale-95"
               >
-                Learn more →
+                Learn more 
+                <svg className="inline-block ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
               </button>
             </div>
             <p className="flex items-center justify-center gap-2 text-sm text-gray-500 lg:justify-start">
@@ -193,6 +199,62 @@ export default function HomePage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats / Social Proof Section */}
+      <section className="bg-white py-16 border-t border-b border-gray-100">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-2 gap-8 text-center md:grid-cols-4">
+            <div className="space-y-2">
+              <div className="text-4xl font-bold  text-indigo-600">5K+</div>
+              <div className="text-sm font-medium text-gray-600">Rooms Managed</div>
+              <div className="text-xs text-gray-500">Across all properties</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-4xl font-bold text-indigo-600">99.9%</div>
+              <div className="text-sm font-medium text-gray-600">Uptime</div>
+              <div className="text-xs text-gray-500">Last 12 months</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-4xl font-bold text-indigo-600">24/7</div>
+              <div className="text-sm font-medium text-gray-600">Support</div>
+              <div className="text-xs text-gray-500">Always available</div>
+            </div>
+            <div className="space-y-2">
+              <div className="text-4xl font-bold text-indigo-600">4.9/5</div>
+              <div className="text-sm font-medium text-gray-600">User Rating</div>
+              <div className="text-xs text-gray-500">From 200+ reviews</div>
+            </div>
+          </div>
+          
+          {/* Trust Badges */}
+          <div className="mt-12 flex flex-wrap items-center justify-center gap-8 text-gray-400">
+            <div className="flex items-center space-x-2">
+              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span className="text-sm font-medium">SSL Secured</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span className="text-sm font-medium">GDPR Compliant</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 6a2 2 0 012-2h6a2 2 0 012 2v8a2 2 0 01-2 2H4a2 2 0 01-2-2V6zM14.553 7.106A1 1 0 0014 8v4a1 1 0 00.553.894l2 1A1 1 0 0018 13V7a1 1 0 00-1.447-.894l-2 1z" />
+              </svg>
+              <span className="text-sm font-medium">Video Tutorials</span>
+            </div>
+            <div className="flex items-center space-x-2">
+              <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+              </svg>
+              <span className="text-sm font-medium">Dedicated Support</span>
             </div>
           </div>
         </div>
@@ -347,13 +409,14 @@ export default function HomePage() {
           <div className="mt-10 flex flex-wrap justify-center gap-4">
             <button
               onClick={() => (user ? navigate('/rooms') : navigate('/signup'))}
-              className="rounded-xl bg-white px-8 py-4 text-lg font-semibold text-indigo-700 shadow-2xl transition hover:bg-gray-100"
+              className="group relative overflow-hidden rounded-xl bg-white px-8 py-4 text-lg font-semibold text-indigo-700 shadow-2xl transition-all duration-300 hover:bg-gray-100 hover:scale-105 active:scale-95"
             >
-              Get started now
+              <span className="relative z-10">Get started now</span>
+              <div className="absolute inset-0 bg-gradient-to-r from-indigo-50 to-purple-50 opacity-0 transition-opacity duration-300 group-hover:opacity-100"></div>
             </button>
             <button
               onClick={() => navigate('/login')}
-              className="rounded-xl border border-white px-8 py-4 text-lg font-semibold text-white transition hover:bg-white/10"
+              className="rounded-xl border-2 border-white px-8 py-4 text-lg font-semibold text-white transition-all duration-300 hover:bg-white/10 hover:scale-105 active:scale-95"
             >
               {user ? 'Go to Dashboard' : 'Sign in'}
             </button>
