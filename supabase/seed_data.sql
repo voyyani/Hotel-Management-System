@@ -10,15 +10,17 @@
 -- SEED ROOM TYPES
 -- =====================================================
 
-INSERT INTO room_types (id, name, description, base_price, max_occupancy, amenities, image_urls) VALUES
+INSERT INTO room_types (id, name, description, base_price, max_adults, max_children, amenities, image_url, created_by) VALUES
 (
   '550e8400-e29b-41d4-a716-446655440001',
   'Standard Room',
   'Comfortable room with essential amenities, perfect for budget-conscious travelers.',
   80.00,
   2,
+  1,
   '["Free WiFi", "Air Conditioning", "Flat-screen TV", "Private Bathroom", "Daily Housekeeping"]'::jsonb,
-  ARRAY['https://placehold.co/800x600/e0e7ff/4f46e5?text=Standard+Room']
+  'https://placehold.co/800x600/e0e7ff/4f46e5?text=Standard+Room',
+  NULL
 ),
 (
   '550e8400-e29b-41d4-a716-446655440002',
@@ -26,8 +28,10 @@ INSERT INTO room_types (id, name, description, base_price, max_occupancy, amenit
   'Spacious room with premium amenities and modern furnishings.',
   120.00,
   2,
+  2,
   '["Free WiFi", "Air Conditioning", "Smart TV", "Mini-bar", "Work Desk", "Coffee Maker", "Private Bathroom", "Daily Housekeeping"]'::jsonb,
-  ARRAY['https://placehold.co/800x600/e0e7ff/4f46e5?text=Deluxe+Room']
+  'https://placehold.co/800x600/e0e7ff/4f46e5?text=Deluxe+Room',
+  NULL
 ),
 (
   '550e8400-e29b-41d4-a716-446655440003',
@@ -35,8 +39,10 @@ INSERT INTO room_types (id, name, description, base_price, max_occupancy, amenit
   'Luxurious suite with separate living area, perfect for business travelers.',
   200.00,
   3,
+  2,
   '["Free WiFi", "Air Conditioning", "Smart TV", "Mini-bar", "Work Desk", "Coffee Maker", "Living Area", "King Bed", "Private Bathroom", "Bathtub", "Daily Housekeeping", "Room Service"]'::jsonb,
-  ARRAY['https://placehold.co/800x600/e0e7ff/4f46e5?text=Executive+Suite']
+  'https://placehold.co/800x600/e0e7ff/4f46e5?text=Executive+Suite',
+  NULL
 ),
 (
   '550e8400-e29b-41d4-a716-446655440004',
@@ -44,8 +50,10 @@ INSERT INTO room_types (id, name, description, base_price, max_occupancy, amenit
   'Spacious room with multiple beds, ideal for families with children.',
   150.00,
   4,
+  3,
   '["Free WiFi", "Air Conditioning", "Smart TV", "Mini-bar", "Coffee Maker", "2 Queen Beds", "Private Bathroom", "Daily Housekeeping", "Kids Amenities"]'::jsonb,
-  ARRAY['https://placehold.co/800x600/e0e7ff/4f46e5?text=Family+Room']
+  'https://placehold.co/800x600/e0e7ff/4f46e5?text=Family+Room',
+  NULL
 ),
 (
   '550e8400-e29b-41d4-a716-446655440005',
@@ -53,8 +61,10 @@ INSERT INTO room_types (id, name, description, base_price, max_occupancy, amenit
   'Ultimate luxury with panoramic views, private balcony, and VIP services.',
   400.00,
   4,
+  2,
   '["Free WiFi", "Air Conditioning", "Smart TV", "Full Bar", "Work Desk", "Coffee Maker", "Living Area", "Dining Area", "King Bed", "Private Bathroom", "Jacuzzi", "Private Balcony", "Ocean View", "24/7 Butler Service", "Daily Housekeeping"]'::jsonb,
-  ARRAY['https://placehold.co/800x600/e0e7ff/4f46e5?text=Presidential+Suite']
+  'https://placehold.co/800x600/e0e7ff/4f46e5?text=Presidential+Suite',
+  NULL
 ) ON CONFLICT (id) DO NOTHING;
 
 -- =====================================================

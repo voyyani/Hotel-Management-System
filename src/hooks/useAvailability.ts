@@ -13,14 +13,13 @@ export function useAvailableRooms(filters?: AvailabilitySearchFilters) {
         return [];
       }
 
-      const minOccupancy = filters.num_adults + filters.num_children;
-
       const { data, error } = await supabase
         .rpc('find_available_rooms', {
           p_check_in: filters.check_in_date,
           p_check_out: filters.check_out_date,
           p_room_type_id: filters.room_type_id || null,
-          p_min_occupancy: minOccupancy,
+          p_num_adults: filters.num_adults || 1,
+          p_num_children: filters.num_children || 0,
         });
 
       if (error) {
@@ -195,7 +194,8 @@ export function useRoomTypesWithAvailability(checkIn?: string, checkOut?: string
           p_check_in: checkIn,
           p_check_out: checkOut,
           p_room_type_id: null,
-          p_min_occupancy: 1,
+          p_num_adults: 1,
+          p_num_children: 0,
         });
 
       if (availError) {

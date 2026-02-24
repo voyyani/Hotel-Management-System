@@ -1,6 +1,7 @@
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { cn } from '@/lib/utils';
 import {
   Home,
@@ -39,6 +40,7 @@ export function Sidebar({ isOpen, onClose, variant = 'desktop', isCollapsed = fa
   const navigate = useNavigate();
   const { profile, signOut } = useAuth();
   const { role } = usePermissions();
+  const { hotelName } = useSystemSettings();
 
   const handleSignOut = async () => {
     await signOut();
@@ -122,7 +124,7 @@ export function Sidebar({ isOpen, onClose, variant = 'desktop', isCollapsed = fa
                 <Hotel className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-xl font-bold">HMS</h1>
+                <h1 className="text-xl font-bold">{hotelName}</h1>
                 <p className="text-xs text-slate-400">Hotel Management</p>
               </div>
             </div>

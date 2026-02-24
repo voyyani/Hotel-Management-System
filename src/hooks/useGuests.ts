@@ -26,9 +26,9 @@ export interface GuestPreferences {
 export interface SearchFilters {
   searchTerm?: string;
   nationality?: string;
-  isActive?: boolean;
   hasEmail?: boolean;
   hasPhone?: boolean;
+  currentlyCheckedIn?: boolean;
 }
 
 /**
@@ -47,7 +47,11 @@ export function useGuests(filters?: SearchFilters) {
         .from('guests')
         .select(`
           *,
-          reservations(count)
+          reservations(
+            status,
+            actual_check_in,
+            actual_check_out
+          )
         `)
         .order('created_at', { ascending: false });
 
@@ -59,10 +63,6 @@ export function useGuests(filters?: SearchFilters) {
 
       if (filters?.nationality) {
         query = query.eq('nationality', filters.nationality);
-      }
-
-      if (filters?.isActive !== undefined) {
-        query = query.eq('is_active', filters.isActive);
       }
 
       if (filters?.hasEmail) {
@@ -77,11 +77,21 @@ export function useGuests(filters?: SearchFilters) {
 
       if (error) throw error;
 
-      // Transform data to include stats
-      return (data || []).map(guest => ({
+      let results = (data || []).map(guest => ({
         ...guest,
         total_stays: Array.isArray(guest.reservations) ? guest.reservations.length : 0,
       })) as GuestWithStats[];
+
+      // Filter for currently checked in guests (post-processing since we need to check reservation status)
+      if (filters?.currentlyCheckedIn) {
+        results = results.filter(guest => {
+          const reservations = (guest as any).reservations;
+          return Array.isArray(reservations) && 
+                 reservations.some((res: any) => res.status === 'checked_in');
+        });
+      }
+
+      return results;
     },
     staleTime: 30000, // 30 seconds
   });
@@ -129,27 +139,12 @@ export function useGuests(filters?: SearchFilters) {
     },
   });
 
-  // Soft delete guest (set is_active to false)
+  // Delete guest (hard delete)
   const deleteGuest = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('guests')
-        .update({ is_active: false, updated_at: new Date().toISOString() })
-        .eq('id', id);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['guests'] });
-    },
-  });
-
-  // Restore guest (set is_active to true)
-  const restoreGuest = useMutation({
-    mutationFn: async (id: string) => {
-      const { error } = await supabase
-        .from('guests')
-        .update({ is_active: true, updated_at: new Date().toISOString() })
+        .delete()
         .eq('id', id);
 
       if (error) throw error;
@@ -240,7 +235,6 @@ export function useGuests(filters?: SearchFilters) {
     createGuest,
     updateGuest,
     deleteGuest,
-    restoreGuest,
     mergeGuests,
     exportToCSV,
   };

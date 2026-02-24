@@ -1,17 +1,39 @@
 import { ReactNode, useState } from 'react';
 import { Sidebar } from './Sidebar';
 import { Menu } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useSystemSettings } from '@/hooks/useSystemSettings';
+import { OnboardingModal } from '@/components/OnboardingModal';
 
 interface AppLayoutProps {
   children: ReactNode;
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
+  const { profile } = useAuth();
+  const { isConfigured, isLoading: settingsLoading, hotelName } = useSystemSettings();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // Show onboarding modal for admins if system is not configured
+  const shouldShowOnboarding = 
+    !settingsLoading && 
+    !isConfigured && 
+    profile?.role === 'admin' &&
+    showOnboarding === false;
+
+  if (shouldShowOnboarding && !showOnboarding) {
+    setShowOnboarding(true);
+  }
 
   return (
     <div className="flex h-screen overflow-hidden bg-slate-50">
+      {/* Onboarding Modal */}
+      {showOnboarding && !isConfigured && profile?.role === 'admin' && (
+        <OnboardingModal onComplete={() => setShowOnboarding(false)} />
+      )}
+
       {/* Desktop Sidebar - Hidden on mobile */}
       <div className="hidden lg:block">
         <Sidebar
@@ -44,7 +66,7 @@ export function AppLayout({ children }: AppLayoutProps) {
             >
               <Menu className="w-6 h-6 text-slate-700" />
             </button>
-            <h1 className="text-lg font-bold text-slate-900">HMS</h1>
+            <h1 className="text-lg font-bold text-slate-900">{hotelName || 'HMS'}</h1>
           </div>
         </div>
 

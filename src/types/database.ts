@@ -894,6 +894,10 @@ export interface Database {
 /**
  * Helper types for database operations
  */
+export type Profile = Database['public']['Tables']['profiles']['Row']
+export type ProfileInsert = Database['public']['Tables']['profiles']['Insert']
+export type ProfileUpdate = Database['public']['Tables']['profiles']['Update']
+
 export type Reservation = Database['public']['Tables']['reservations']['Row']
 export type ReservationInsert = Database['public']['Tables']['reservations']['Insert']
 export type ReservationUpdate = Database['public']['Tables']['reservations']['Update']

@@ -69,7 +69,8 @@ RETURNS TABLE (
   room_type_name VARCHAR(100),
   floor INTEGER,
   base_price DECIMAL(10,2),
-  max_occupancy INTEGER
+  max_adults INTEGER,
+  max_children INTEGER
 ) AS $$
 BEGIN
   RETURN QUERY
@@ -79,12 +80,13 @@ BEGIN
     rt.name,
     r.floor,
     rt.base_price,
-    rt.max_occupancy
+    rt.max_adults,
+    rt.max_children
   FROM rooms r
   JOIN room_types rt ON rt.id = r.room_type_id
   WHERE r.status = 'available'
   AND rt.is_active = true
-  AND rt.max_occupancy >= p_min_occupancy
+  AND (rt.max_adults + rt.max_children) >= p_min_occupancy
   AND (p_room_type_id IS NULL OR r.room_type_id = p_room_type_id)
   AND check_room_availability(r.id, p_check_in, p_check_out)
   ORDER BY rt.base_price ASC, r.room_number ASC;
@@ -108,15 +110,17 @@ RETURNS DECIMAL(10,2) AS $$
 DECLARE
   v_base_price DECIMAL(10,2);
   v_num_nights INTEGER;
-  v_max_occupancy INTEGER;
+  v_max_adults INTEGER;
+  v_max_children INTEGER;
   v_total DECIMAL(10,2);
   v_extra_person_charge DECIMAL(10,2) := 20.00; -- $20 per extra person per night
 BEGIN
   -- Get room type details
   SELECT 
     rt.base_price,
-    rt.max_occupancy
-  INTO v_base_price, v_max_occupancy
+    rt.max_adults,
+    rt.max_children
+  INTO v_base_price, v_max_adults, v_max_children
   FROM rooms r
   JOIN room_types rt ON rt.id = r.room_type_id
   WHERE r.id = p_room_id;
@@ -133,9 +137,9 @@ BEGIN
   END IF;
   
   -- Validate occupancy
-  IF (p_num_adults + p_num_children) > v_max_occupancy THEN
-    RAISE EXCEPTION 'Total guests (%) exceeds room capacity (%)', 
-      p_num_adults + p_num_children, v_max_occupancy;
+  IF p_num_adults > v_max_adults OR p_num_children > v_max_children THEN
+    RAISE EXCEPTION 'Guest count exceeds room capacity (Max: % adults, % children)', 
+      v_max_adults, v_max_children;
   END IF;
   
   -- Base calculation: base_price * num_nights

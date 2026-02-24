@@ -16,6 +16,7 @@ import { ReservationsPage } from './pages/ReservationsPage';
 import { BillingPage } from './pages/BillingPage';
 import FrontDeskPage from './pages/FrontDeskPage';
 import AnalyticsPage from './pages/AnalyticsPage';
+import SettingsPage from './pages/SettingsPage';
 import './index.css';
 
 // Create a client
@@ -134,6 +135,18 @@ function App() {
                 >
                   <AppLayout>
                     <AnalyticsPage />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                <ProtectedRoute 
+                  requiredRoles={['admin', 'manager']}
+                >
+                  <AppLayout>
+                    <SettingsPage />
                   </AppLayout>
                 </ProtectedRoute>
               }

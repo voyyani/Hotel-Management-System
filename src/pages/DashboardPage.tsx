@@ -1,5 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useKPIData } from '@/hooks/useAnalytics';
+import { useTodayCheckIns, useTodayCheckOuts } from '@/hooks/useReservations';
+import { format } from 'date-fns';
 // import { ManagerDashboard } from '@/components/dashboards/ManagerDashboard';
 // import { ReceptionistDashboard } from '@/components/dashboards/ReceptionistDashboard';
 // import { AccountsDashboard } from '@/components/dashboards/AccountsDashboard';
@@ -25,19 +28,39 @@ const getRoleColor = (role: string): string => {
 export default function DashboardPage() {
   const navigate = useNavigate();
   const { profile } = useAuth();
-  // const [viewAsRole] = useState<string | null>(null);
-
-  // Determine which role's dashboard to show
-  // const effectiveRole = viewAsRole || profile?.role;
-
-  // Managers can switch between different dashboard views
-  // const canSwitchView = profile?.role === 'manager' || profile?.role === 'admin';
+  
+  // Fetch real data from database
+  const { data: kpiData, isLoading: isLoadingKPI } = useKPIData();
+  const { data: todayCheckIns = [], isLoading: isLoadingCheckIns } = useTodayCheckIns();
+  const { data: todayCheckOuts = [], isLoading: isLoadingCheckOuts } = useTodayCheckOuts();
 
   const stats = [
-    { name: 'Total Rooms', value: '50', icon: '🏨', color: 'from-blue-500 to-indigo-600' },
-    { name: 'Occupied', value: '35', icon: '✅', color: 'from-green-500 to-emerald-600' },
-    { name: 'Available', value: '15', icon: '🆓', color: 'from-purple-500 to-pink-600' },
-    { name: 'Revenue Today', value: '$4,230', icon: '💰', color: 'from-amber-500 to-orange-600' },
+    { 
+      name: 'Total Rooms', 
+      value: isLoadingKPI ? '...' : kpiData?.totalRooms?.toString() || '0', 
+      icon: '🏨', 
+      color: 'from-blue-500 to-indigo-600' 
+    },
+    { 
+      name: 'Occupied', 
+      value: isLoadingKPI ? '...' : kpiData?.occupiedRooms?.toString() || '0', 
+      icon: '✅', 
+      color: 'from-green-500 to-emerald-600' 
+    },
+    { 
+      name: 'Available', 
+      value: isLoadingKPI ? '...' : kpiData?.availableRooms?.toString() || '0', 
+      icon: '🆓', 
+      color: 'from-purple-500 to-pink-600' 
+    },
+    { 
+      name: 'Revenue Today', 
+      value: isLoadingKPI 
+        ? '...' 
+        : `KES ${(kpiData?.todayRevenue || 0).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, 
+      icon: '💰', 
+      color: 'from-amber-500 to-orange-600' 
+    },
   ];
 
   return (
@@ -92,76 +115,133 @@ export default function DashboardPage() {
           {/* Today's Check-ins */}
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Today's Check-ins
+              Today's Check-ins ({todayCheckIns.length})
             </h2>
             <div className="space-y-3">
-              {[
-                { name: 'John Doe', room: '201', time: '2:00 PM', status: 'completed' },
-                { name: 'Jane Smith', room: '305', time: '3:30 PM', status: 'pending' },
-                { name: 'Bob Johnson', room: '412', time: '4:15 PM', status: 'pending' },
-              ].map((checkin, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center text-white font-semibold">
-                      {checkin.name.charAt(0)}
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">{checkin.name}</p>
-                      <p className="text-sm text-gray-500">Room {checkin.room} · {checkin.time}</p>
-                    </div>
-                  </div>
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      checkin.status === 'completed'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-yellow-100 text-yellow-800'
-                    }`}
-                  >
-                    {checkin.status}
-                  </span>
+              {isLoadingCheckIns ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>Loading check-ins...</p>
                 </div>
-              ))}
+              ) : todayCheckIns.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No guests checked in today</p>
+                </div>
+              ) : (
+                todayCheckIns.slice(0, 5).map((reservation) => {
+                  const guestName = reservation.guest 
+                    ? `${reservation.guest.first_name} ${reservation.guest.last_name}`
+                    : 'Unknown Guest';
+                  const checkInTime = reservation.actual_check_in 
+                    ? format(new Date(reservation.actual_check_in), 'h:mm a')
+                    : 'Pending';
+                  const isCheckedIn = reservation.status === 'checked_in';
+                  
+                  return (
+                    <div
+                      key={reservation.id}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center text-white font-semibold">
+                          {guestName.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{guestName}</p>
+                          <p className="text-sm text-gray-500">
+                            Room {reservation.room?.room_number || 'N/A'} · {checkInTime}
+                          </p>
+                        </div>
+                      </div>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          isCheckedIn
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-yellow-100 text-yellow-800'
+                        }`}
+                      >
+                        {isCheckedIn ? 'Checked In' : 'Pending'}
+                      </span>
+                    </div>
+                  );
+                })
+              )}
             </div>
+            {todayCheckIns.length > 5 && (
+              <div className="mt-4 text-center">
+                <button
+                  onClick={() => navigate('/front-desk')}
+                  className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  View all {todayCheckIns.length} check-ins →
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Today's Check-outs */}
           <div className="bg-white rounded-2xl shadow-lg p-6">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Today's Check-outs
+              Today's Check-outs ({todayCheckOuts.length})
             </h2>
             <div className="space-y-3">
-              {[
-                { name: 'Alice Cooper', room: '102', time: '11:00 AM', status: 'completed' },
-                { name: 'Charlie Brown', room: '204', time: '12:00 PM', status: 'in-progress' },
-              ].map((checkout, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center text-white font-semibold">
-                      {checkout.name.charAt(0)}
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">{checkout.name}</p>
-                      <p className="text-sm text-gray-500">Room {checkout.room} · {checkout.time}</p>
-                    </div>
-                  </div>
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      checkout.status === 'completed'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-blue-100 text-blue-800'
-                    }`}
-                  >
-                    {checkout.status}
-                  </span>
+              {isLoadingCheckOuts ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>Loading check-outs...</p>
                 </div>
-              ))}
+              ) : todayCheckOuts.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No guests checked out today</p>
+                </div>
+              ) : (
+                todayCheckOuts.slice(0, 5).map((reservation) => {
+                  const guestName = reservation.guest 
+                    ? `${reservation.guest.first_name} ${reservation.guest.last_name}`
+                    : 'Unknown Guest';
+                  const checkOutTime = reservation.actual_check_out 
+                    ? format(new Date(reservation.actual_check_out), 'h:mm a')
+                    : 'Pending';
+                  const isCheckedOut = reservation.status === 'checked_out';
+                  
+                  return (
+                    <div
+                      key={reservation.id}
+                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-600 to-pink-600 flex items-center justify-center text-white font-semibold">
+                          {guestName.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="font-medium text-gray-900">{guestName}</p>
+                          <p className="text-sm text-gray-500">
+                            Room {reservation.room?.room_number || 'N/A'} · {checkOutTime}
+                          </p>
+                        </div>
+                      </div>
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${
+                          isCheckedOut
+                            ? 'bg-gray-100 text-gray-800'
+                            : 'bg-blue-100 text-blue-800'
+                        }`}
+                      >
+                        {isCheckedOut ? 'Checked Out' : 'In Progress'}
+                      </span>
+                    </div>
+                  );
+                })
+              )}
             </div>
+            {todayCheckOuts.length > 5 && (
+              <div className="mt-4 text-center">
+                <button
+                  onClick={() => navigate('/front-desk')}
+                  className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  View all {todayCheckOuts.length} check-outs →
+                </button>
+              </div>
+            )}
           </div>
         </div>
 

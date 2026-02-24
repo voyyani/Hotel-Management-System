@@ -49,7 +49,8 @@ export const mockRoomType = {
   name: 'Deluxe Room',
   description: 'A comfortable deluxe room',
   base_price: 150,
-  max_occupancy: 2,
+  max_adults: 2,
+  max_children: 1,
   amenities: ['wifi', 'tv', 'ac'],
   created_at: '2024-01-01T00:00:00.000Z',
 };

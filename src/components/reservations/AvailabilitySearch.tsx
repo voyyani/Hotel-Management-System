@@ -9,7 +9,7 @@ import type { AvailabilitySearchFilters } from '@/types/database';
 import { Calendar, Users, Bed, ChevronRight } from 'lucide-react';
 
 interface AvailabilitySearchProps {
-  onRoomSelect?: (roomId: string, filters: AvailabilitySearchFilters) => void;
+  onRoomSelect?: (roomId: string, roomNumber: string, basePrice: number, filters: AvailabilitySearchFilters) => void;
 }
 
 export function AvailabilitySearch({ onRoomSelect }: AvailabilitySearchProps) {
@@ -198,7 +198,7 @@ export function AvailabilitySearch({ onRoomSelect }: AvailabilitySearchProps) {
               </div>
 
               <Button
-                onClick={() => onRoomSelect?.(room.id, filters)}
+                onClick={() => onRoomSelect?.(room.id, room.room_number, room.base_price, filters)}
                 className="w-full"
               >
                 Select Room

@@ -17,7 +17,6 @@ interface GuestGridProps {
 export function GuestGrid({ onGuestSelect, onEditGuest }: GuestGridProps) {
   const [filters, setFilters] = useState<SearchFilters>({
     searchTerm: '',
-    isActive: true,
   });
 
   const [searchInput, setSearchInput] = useState('');
@@ -39,11 +38,11 @@ export function GuestGrid({ onGuestSelect, onEditGuest }: GuestGridProps) {
     setFilters(prev => ({ ...prev, searchTerm: '' }));
   };
 
-  const handleStatusFilter = (value: string) => {
+  const handleGuestStatusFilter = (value: string) => {
     if (value === 'all') {
-      setFilters(prev => ({ ...prev, isActive: undefined }));
-    } else {
-      setFilters(prev => ({ ...prev, isActive: value === 'active' }));
+      setFilters(prev => ({ ...prev, currentlyCheckedIn: undefined }));
+    } else if (value === 'checked-in') {
+      setFilters(prev => ({ ...prev, currentlyCheckedIn: true }));
     }
   };
 
@@ -111,15 +110,14 @@ export function GuestGrid({ onGuestSelect, onEditGuest }: GuestGridProps) {
               </Button>
             </div>
 
-            {/* Status Filter */}
-            <Select defaultValue="active" onValueChange={handleStatusFilter}>
-              <SelectTrigger className="w-full sm:w-40">
-                <SelectValue placeholder="Status" />
+            {/* Guest Status Filter */}
+            <Select defaultValue="all" onValueChange={handleGuestStatusFilter}>
+              <SelectTrigger className="w-full sm:w-48">
+                <SelectValue placeholder="Filter guests" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Guests</SelectItem>
-                <SelectItem value="active">Active Only</SelectItem>
-                <SelectItem value="inactive">Inactive Only</SelectItem>
+                <SelectItem value="checked-in">Currently Checked In</SelectItem>
               </SelectContent>
             </Select>
 
@@ -158,9 +156,13 @@ export function GuestGrid({ onGuestSelect, onEditGuest }: GuestGridProps) {
           <CardContent className="pt-6">
             <div className="text-center">
               <p className="text-2xl font-bold text-green-600">
-                {guests.filter(g => g.is_active).length}
+                {guests.filter(g => {
+                  const reservations = (g as any).reservations;
+                  return Array.isArray(reservations) && 
+                         reservations.some((res: any) => res.status === 'checked_in');
+                }).length}
               </p>
-              <p className="text-sm text-gray-600">Active Guests</p>
+              <p className="text-sm text-gray-600">Currently Checked In</p>
             </div>
           </CardContent>
         </Card>

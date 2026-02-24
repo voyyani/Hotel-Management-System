@@ -23,12 +23,11 @@ export function ReservationsPage() {
   const createMutation = useCreateReservation();
   const { data: selectedReservation } = useReservation(selectedReservationId || undefined);
 
-  const handleRoomSelect = (roomId: string, filters: AvailabilitySearchFilters) => {
-    // In a real implementation, we'd get room details
+  const handleRoomSelect = (roomId: string, roomNumber: string, basePrice: number, filters: AvailabilitySearchFilters) => {
     setSelectedRoom({
       id: roomId,
-      number: 'TBD', // Would come from room data
-      price: 0, // Would come from room data
+      number: roomNumber,
+      price: basePrice,
       filters,
     });
     setShowCreateModal(true);

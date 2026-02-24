@@ -34,18 +34,22 @@ CREATE TABLE room_types (
   name VARCHAR(100) NOT NULL UNIQUE,
   description TEXT,
   base_price DECIMAL(10,2) NOT NULL CHECK (base_price >= 0),
-  max_occupancy INTEGER NOT NULL CHECK (max_occupancy > 0),
+  max_adults INTEGER NOT NULL DEFAULT 2 CHECK (max_adults > 0),
+  max_children INTEGER NOT NULL DEFAULT 0 CHECK (max_children >= 0),
   amenities JSONB DEFAULT '[]'::jsonb,
-  image_urls TEXT[] DEFAULT ARRAY[]::TEXT[],
+  image_url TEXT,
   is_active BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_by UUID REFERENCES profiles(id) ON DELETE SET NULL
 );
 
 COMMENT ON TABLE room_types IS 'Master data for different room categories (e.g., Deluxe Suite, Standard Room)';
 COMMENT ON COLUMN room_types.base_price IS 'Base price per night in hotel currency';
+COMMENT ON COLUMN room_types.max_adults IS 'Maximum number of adults allowed';
+COMMENT ON COLUMN room_types.max_children IS 'Maximum number of children allowed';
 COMMENT ON COLUMN room_types.amenities IS 'JSON array of amenities: ["WiFi", "TV", "Mini-bar"]';
-COMMENT ON COLUMN room_types.image_urls IS 'Array of image URLs for this room type';
+COMMENT ON COLUMN room_types.image_url IS 'Primary image URL for this room type';
 
 -- =====================================================
 -- ROOMS TABLE
@@ -59,8 +63,10 @@ CREATE TABLE rooms (
   features JSONB DEFAULT '{}'::jsonb,
   last_cleaned_at TIMESTAMPTZ,
   notes TEXT,
+  is_active BOOLEAN NOT NULL DEFAULT true,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_by UUID REFERENCES profiles(id) ON DELETE SET NULL
 );
 
 COMMENT ON TABLE rooms IS 'Individual room inventory';

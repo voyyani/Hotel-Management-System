@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -27,7 +27,7 @@ export function ReservationForm({
   onCancel,
   isSubmitting,
 }: ReservationFormProps) {
-  const { guests } = useGuests();
+  const { guests, isLoading: guestsLoading } = useGuests();
 
   const [formData, setFormData] = useState({
     guest_id: '',
@@ -40,6 +40,25 @@ export function ReservationForm({
     status: 'pending' as const,
   });
 
+  // Update form data when props change
+  useEffect(() => {
+    if (roomId) {
+      setFormData(prev => ({ ...prev, room_id: roomId }));
+    }
+  }, [roomId]);
+
+  useEffect(() => {
+    if (initialFilters) {
+      setFormData(prev => ({
+        ...prev,
+        check_in_date: initialFilters.check_in_date || prev.check_in_date,
+        check_out_date: initialFilters.check_out_date || prev.check_out_date,
+        num_adults: initialFilters.num_adults || prev.num_adults,
+        num_children: initialFilters.num_children || prev.num_children,
+      }));
+    }
+  }, [initialFilters]);
+
   const { data: calculated } = useCalculateReservationTotal(
     formData.check_in_date,
     formData.check_out_date,
@@ -49,8 +68,16 @@ export function ReservationForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!formData.guest_id || !formData.room_id) {
-      alert('Please select a guest and room');
+    console.log('Form submission attempt:', { formData, roomId, roomNumber });
+
+    if (!formData.guest_id) {
+      alert('Please select a guest');
+      return;
+    }
+
+    if (!formData.room_id) {
+      alert('Room not selected. Please go back and select a room.');
+      console.error('room_id missing:', { roomId, formData });
       return;
     }
 
@@ -85,23 +112,33 @@ export function ReservationForm({
       {/* Guest Selection */}
       <div className="space-y-2">
         <Label htmlFor="guest">Guest *</Label>
-        <Select
-          value={formData.guest_id}
-          onValueChange={(value) => setFormData({ ...formData, guest_id: value })}
-          required
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Select a guest" />
-          </SelectTrigger>
-          <SelectContent>
-            {guests?.map((guest) => (
-              <SelectItem key={guest.id} value={guest.id}>
-               {guest.first_name} {guest.last_name}
-                {guest.email && ` (${guest.email})`}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {guestsLoading ? (
+          <div className="px-3 py-2 border rounded-md bg-gray-50 text-gray-500">
+            Loading guests...
+          </div>
+        ) : guests && guests.length > 0 ? (
+          <Select
+            value={formData.guest_id}
+            onValueChange={(value) => setFormData({ ...formData, guest_id: value })}
+            required
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select a guest" />
+            </SelectTrigger>
+            <SelectContent>
+              {guests.map((guest) => (
+                <SelectItem key={guest.id} value={guest.id}>
+                  {guest.first_name} {guest.last_name}
+                  {guest.email && ` (${guest.email})`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          <div className="px-3 py-2 border rounded-md bg-yellow-50 text-yellow-700 text-sm">
+            No guests found. Please create a guest first from the Guests page.
+          </div>
+        )}
       </div>
 
       {/* Dates */}

@@ -87,6 +87,18 @@ export function WalkInFlow({ onComplete, onCancel }: WalkInFlowProps) {
   };
 
   const handleSelectRoom = (roomId: string) => {
+    // Validate that the selected room can accommodate the guest count
+    const selectedRoom = availableRooms?.find(r => r.id === roomId);
+    if (selectedRoom) {
+      if (bookingDetails.num_adults > selectedRoom.max_adults) {
+        alert(`This room cannot accommodate ${bookingDetails.num_adults} adults. Maximum: ${selectedRoom.max_adults}`);
+        return;
+      }
+      if (bookingDetails.num_children > selectedRoom.max_children) {
+        alert(`This room cannot accommodate ${bookingDetails.num_children} children. Maximum: ${selectedRoom.max_children}`);
+        return;
+      }
+    }
     setBookingDetails({ ...bookingDetails, selected_room_id: roomId });
     setCurrentStep('confirm');
   };

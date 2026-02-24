@@ -563,3 +563,144 @@ export function useGuestReservations(guestId?: string) {
     staleTime: 30000,
   });
 }
+
+/**
+ * Hook to get guests who checked in today (actual check-ins)
+ */
+export function useTodayCheckIns() {
+  const today = new Date();
+  const todayStart = today.toISOString().split('T')[0] + 'T00:00:00Z';
+  const todayEnd = today.toISOString().split('T')[0] + 'T23:59:59Z';
+
+  return useQuery({
+    queryKey: ['today-checkins', todayStart],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('reservations')
+        .select(`
+          *,
+          guest:guests!guest_id (
+            id,
+            first_name,
+            last_name,
+            email,
+            phone
+          ),
+          room:rooms!room_id (
+            id,
+            room_number,
+            floor,
+            room_type:room_types!room_type_id (
+              id,
+              name
+            )
+          )
+        `)
+        .not('actual_check_in', 'is', null)
+        .gte('actual_check_in', todayStart)
+        .lte('actual_check_in', todayEnd)
+        .order('actual_check_in', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching today check-ins:', error);
+        throw error;
+      }
+
+      return data as ReservationWithDetails[];
+    },
+    staleTime: 60000, // 1 minute
+    refetchInterval: 300000, // refetch every 5 minutes
+  });
+}
+
+/**
+ * Hook to get guests who checked out today (actual check-outs)
+ */
+export function useTodayCheckOuts() {
+  const today = new Date();
+  const todayStart = today.toISOString().split('T')[0] + 'T00:00:00Z';
+  const todayEnd = today.toISOString().split('T')[0] + 'T23:59:59Z';
+
+  return useQuery({
+    queryKey: ['today-checkouts', todayStart],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('reservations')
+        .select(`
+          *,
+          guest:guests!guest_id (
+            id,
+            first_name,
+            last_name,
+            email,
+            phone
+          ),
+          room:rooms!room_id (
+            id,
+            room_number,
+            floor,
+            room_type:room_types!room_type_id (
+              id,
+              name
+            )
+          )
+        `)
+        .not('actual_check_out', 'is', null)
+        .gte('actual_check_out', todayStart)
+        .lte('actual_check_out', todayEnd)
+        .order('actual_check_out', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching today check-outs:', error);
+        throw error;
+      }
+
+      return data as ReservationWithDetails[];
+    },
+    staleTime: 60000, // 1 minute
+    refetchInterval: 300000, // refetch every 5 minutes
+  });
+}
+
+/**
+ * Hook to get currently checked-in guests
+ */
+export function useCurrentlyCheckedIn() {
+  return useQuery({
+    queryKey: ['currently-checked-in'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('reservations')
+        .select(`
+          *,
+          guest:guests!guest_id (
+            id,
+            first_name,
+            last_name,
+            email,
+            phone
+          ),
+          room:rooms!room_id (
+            id,
+            room_number,
+            floor,
+            room_type:room_types!room_type_id (
+              id,
+              name
+            )
+          )
+        `)
+        .eq('status', 'checked_in')
+        .order('actual_check_in', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching currently checked-in guests:', error);
+        throw error;
+      }
+
+      return data as ReservationWithDetails[];
+    },
+    staleTime: 60000, // 1 minute
+    refetchInterval: 300000, // refetch every 5 minutes
+  });
+}
